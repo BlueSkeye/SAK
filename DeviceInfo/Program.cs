@@ -24,9 +24,9 @@ namespace DeviceInfo
                 label = description;
                 description = null;
             }
-            Console.WriteLine("------------------------------------");
-            Console.WriteLine("{0} {1}", label ?? "UNKNOWN", description ?? string.Empty);
-            Console.WriteLine("------------------------------------");
+            Output("------------------------------------");
+            Output("{0} {1}", label ?? "UNKNOWN", description ?? string.Empty);
+            Output("------------------------------------");
             int devInstance = Marshal.ReadInt32(devInfo, 20);
             int detailsLength = 560;
             IntPtr details = IntPtr.Zero;
@@ -38,7 +38,7 @@ namespace DeviceInfo
                     Marshal.FreeCoTaskMem(details);
                     details = IntPtr.Zero;
                     error = Marshal.GetLastWin32Error();
-                    Console.WriteLine("\tNo details : error {0}", error);
+                    Output("\tNo details : error {0}", error);
                 }
 
                 if (!DumpDeviceWithInfo(devs, devInfo, label)) {
@@ -50,10 +50,10 @@ namespace DeviceInfo
                 string className = GetDeviceStringProperty(devs, devInfo, DeviceProperty.Class);
                 string classId = GetDeviceStringProperty(devs, devInfo, DeviceProperty.ClassGuid);
                 if (string.IsNullOrEmpty(className) && string.IsNullOrEmpty(classId)) {
-                    Console.WriteLine("\tNo class.");
+                    Output("\tNo class.");
                 }
                 else {
-                    Console.WriteLine("\tClass {0} : {1}.", className ?? "NO NAME", classId ?? "NO ID");
+                    Output("\tClass {0} : {1}.", className ?? "NO NAME", classId ?? "NO ID");
                 }
 
                 DeviceStatus status = 0;
@@ -75,30 +75,30 @@ namespace DeviceInfo
                             if (0 != (DeviceStatus.HasProblem & status)) {
                                 hasInfo = true;
                                 if (Problem.CM_PROB_DISABLED == problem) {
-                                    Console.WriteLine("\tDisabled");
+                                    Output("\tDisabled");
                                     disabled = true;
                                 }
-                                else { Console.WriteLine("\tProblem : {0}", problem); }
+                                else { Output("\tProblem : {0}", problem); }
                             }
                             if (!disabled) {
                                 if (0 != (DeviceStatus.PrivateProblem & status)) {
-                                    Console.WriteLine("\tPrivate problem.");
+                                    Output("\tPrivate problem.");
                                 }
                                 if (0 != (DeviceStatus.Started & status)) {
-                                    Console.WriteLine("\tStarted.");
+                                    Output("\tStarted.");
                                 }
                                 else if (!hasInfo) {
-                                    Console.WriteLine("\tNot started.");
+                                    Output("\tNot started.");
                                 }
                             }
                             break;
                         case 0x0000000D: /* CR_NO_SUCH_DEVINST */
                         case 0x00000025: /* CR_NO_SUCH_VALUE */
-                            Console.WriteLine("\tPhantom device.");
+                            Output("\tPhantom device.");
                             isPhantom = true;
                             break;
                         default:
-                            Console.WriteLine("\tUnable to retrieve status. Error 0x{0:X8}", nodeStatusCR);
+                            Output("\tUnable to retrieve status. Error 0x{0:X8}", nodeStatusCR);
                             break;
                     }
                 }
@@ -144,12 +144,12 @@ namespace DeviceInfo
                     }
                     if (!haveConfig) {
                         // if we don't have any configuration, display an apropriate message
-                        Console.WriteLine((0 != (DeviceStatus.Started & status))
+                        Output((0 != (DeviceStatus.Started & status))
                             ? "\tNo resources."
                             : "\tNo reserved resources");
                     }
                     else {
-                        Console.WriteLine((0 != (DeviceStatus.Started & status))
+                        Output((0 != (DeviceStatus.Started & status))
                             ? "\tResources :"
                             : "\tReserved resources :");
                         DumpDeviceResourcesOfType(IntPtr.Zero, config, ResourceType.All);
@@ -181,51 +181,51 @@ namespace DeviceInfo
                             // dump upper class filters if available
                             filters = GetRegistryMultiString(classKey, "UpperFilters");
                             if ((null != filters) && (0 < filters.Count)) {
-                                Console.WriteLine("\tUpper filters :");
+                                Output("\tUpper filters :");
                                 foreach(string filter in filters) {
-                                    Console.WriteLine("\t\t{0}", filter);
+                                    Output("\t\t{0}", filter);
                                 }
                             }
                         }
                         filters = GetDeviceMultiString(devs, devInfo, DeviceProperty.UpperFilters);
                         if ((null != filters) && (0 < filters.Count)) {
                             // dump upper device filters
-                            Console.WriteLine("\tDevice stack upper filters :");
+                            Output("\tDevice stack upper filters :");
                             foreach(string filter in filters) {
-                                Console.WriteLine("\t\t{0}", filter);
+                                Output("\t\t{0}", filter);
                             }
                         }
                         string service = GetDeviceStringProperty(devs, devInfo, DeviceProperty.Service);
                         if (!string.IsNullOrEmpty(service)) {
-                            Console.WriteLine("\tService : {0}", service);
+                            Output("\tService : {0}", service);
                         }
                         else {
-                            Console.WriteLine("\tNo service");
+                            Output("\tNo service");
                         }
                         if (null != classKey) {
                             filters = GetRegistryMultiString(classKey, "LowerFilters");
                             if ((null != filters) && (null != filters[0])) {
                                 // lower class filters
-                                Console.WriteLine("\tClass lower filters:");
+                                Output("\tClass lower filters:");
                                 foreach(string item in filters) {
-                                    Console.WriteLine("\t\t{0}", item);
+                                    Output("\t\t{0}", item);
                                 }
                             }
                             else {
-                                Console.WriteLine("\tNo class lower filters.");
+                                Output("\tNo class lower filters.");
                             }
                         }
                     }
                     finally {  if (null != classKey) { classKey.Close(); } }
                     filters = GetDeviceMultiString(devs, devInfo, DeviceProperty.LowerFilters);
                     if ((null != filters) && (null != filters[0])) {
-                        Console.WriteLine("\tLower filters:");
+                        Output("\tLower filters:");
                         foreach (string item in filters) {
-                            Console.WriteLine("\t\t{0}", item);
+                            Output("\t\t{0}", item);
                         }
                     }
                     else {
-                        Console.WriteLine("\tNo lower filters.");
+                        Output("\tNo lower filters.");
                     }
                 }
 
@@ -236,20 +236,20 @@ namespace DeviceInfo
 
                 if ((null != hwIdArray) && (0 < hwIdArray.Count) && (null != hwIdArray[0])) {
                     displayed = true;
-                    Console.WriteLine("\tHardware IDs:");
+                    Output("\tHardware IDs:");
                     foreach(string item in hwIdArray) {
-                        Console.WriteLine("\t\t{0}", item);
+                        Output("\t\t{0}", item);
                     }
                 }
                 if ((null != compatIdArray) && (0 < compatIdArray.Count) && (null != compatIdArray[0])) {
                     displayed = true;
-                    Console.WriteLine("\tCompatible IDs:");
+                    Output("\tCompatible IDs:");
                     foreach (string item in compatIdArray) {
-                        Console.WriteLine("\t\t{0}", item);
+                        Output("\t\t{0}", item);
                     }
                 }
                 if (!displayed) {
-                    Console.WriteLine("\tNo hardware/compatible IDs found for this device.");
+                    Output("\tNo hardware/compatible IDs found for this device.");
                 }
 
                 // Device driver nodes
@@ -285,7 +285,7 @@ namespace DeviceInfo
                                 int index = 0;
                                 while (SetupDiEnumDriverInfo(devs, devInfo, 0x02 /* SPDIT_COMPATDRIVER */, index, driverInfoData)) {
                                     success = true;
-                                    Console.WriteLine("\tDriver node #{0}", index);
+                                    Output("\tDriver node #{0}", index);
                                     // get useful driver information
                                     int requiredSize;
                                     byte[] localBuffer;
@@ -293,52 +293,52 @@ namespace DeviceInfo
                                         driverInfoDetailSize, out requiredSize)
                                         || (122 /* ERROR_INSUFFICIENT_BUFFER */ == Marshal.GetLastWin32Error()))
                                     {
-                                        Console.WriteLine("\tInf file is {0}",
+                                        Output("\tInf file is {0}",
                                             GetNativeString(260 /* MAX_PATH */, driverInfoDetail, 544));
-                                        Console.WriteLine("\tInf section is {0}",
+                                        Output("\tInf section is {0}",
                                             GetNativeString(256 /* LINE_LEN */, driverInfoDetail, 32));
                                     }
-                                    Console.WriteLine("\tDriver description is {0}",
+                                    Output("\tDriver description is {0}",
                                             GetNativeString(256 /* LINE_LEN */, driverInfoDetail, 16));
-                                    Console.WriteLine("\tManufacturer name is {0}",
+                                    Output("\tManufacturer name is {0}",
                                             GetNativeString(256 /* LINE_LEN */, driverInfoDetail, 528));
-                                    Console.WriteLine("\tProvider name is {0}",
+                                    Output("\tProvider name is {0}",
                                             GetNativeString(256 /* LINE_LEN */, driverInfoDetail, 1040));
 
                                     //if (FileTimeToSystemTime(&driverInfoData.DriverDate, &SystemTime)) {
                                     //    if (GetDateFormat(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &SystemTime, NULL,
                                     //        Buffer, sizeof(Buffer) / sizeof(TCHAR)) != 0)
                                     //    {
-                                    //        Console.WriteLine(MSG_DUMP_DRIVERNODE_DRIVERDATE, Buffer);
+                                    //        Output(MSG_DUMP_DRIVERNODE_DRIVERDATE, Buffer);
                                     //    }
                                     //}
                                     ulong version = (ulong)Marshal.ReadInt64(driverInfoDetail, 1560);
-                                    Console.WriteLine("\tDriver version is {0}.{1}.{2}.{3}",
+                                    Output("\tDriver version is {0}.{1}.{2}.{3}",
                                         (ushort)((version >> 48) & 0xFFFF), (ushort)((version >> 32) & 0xFFFF),
                                         (ushort)((version >> 16) & 0xFFFF), (ushort)((version) & 0xFFFF));
                                     if (SetupDiGetDriverInstallParams(devs, devInfo, driverInfoData, driverInstallParams)) {
                                         int driverInstallFlags = Marshal.ReadInt32(driverInstallParams, 8);
-                                        Console.WriteLine("\tDriver node rank is {0}", Marshal.ReadInt32(driverInstallParams, 4));
-                                        Console.WriteLine("\tDriver node flags are {0:X8}", driverInstallFlags);
+                                        Output("\tDriver node rank is {0}", Marshal.ReadInt32(driverInstallParams, 4));
+                                        Output("\tDriver node flags are {0:X8}", driverInstallFlags);
 
                                         // Interesting flags to dump
                                         if (0 != (driverInstallFlags & 0x0400 /* DNF_OLD_INET_DRIVER*/)) {
-                                            Console.WriteLine("\tInf came from the Internet");
+                                            Output("\tInf came from the Internet");
                                         }
                                         if (0 != (driverInstallFlags & 0x0800 /* DNF_BAD_DRIVER*/)) {
-                                            Console.WriteLine("\tDriver node is marked \"BAD\"");
+                                            Output("\tDriver node is marked \"BAD\"");
                                         }
                                         // DNF_INF_IS_SIGNED is available since WinXP
                                         if (0 != (driverInstallFlags & 0x2000 /* DNF_INF_IS_SIGNED*/)) {
-                                            Console.WriteLine("\tInf is digitally signed");
+                                            Output("\tInf is digitally signed");
                                         }
                                         // DNF_OEM_F6_INF is only available since WinXP
                                         if (0 != (driverInstallFlags & 0x4000 /* DNF_OEM_F6_INF*/ )) {
-                                            Console.WriteLine("\tInf was installed by using F6 during text mode setup");
+                                            Output("\tInf was installed by using F6 during text mode setup");
                                         }
                                         // DNF_BASIC_DRIVER is only available since WinXP
                                         if (0 != (driverInstallFlags & 0x00010000 /* DNF_BASIC_DRIVER*/)) {
-                                            Console.WriteLine("\tDriver provides basic functionality when no signed driver is available.");
+                                            Output("\tDriver provides basic functionality when no signed driver is available.");
                                         }
                                     }
                                     index++;
@@ -346,7 +346,7 @@ namespace DeviceInfo
                                 SetupDiDestroyDriverInfoList(devs, devInfo, 0x02 /* SPDIT_COMPATDRIVER */);
                             }
                             if (!success) {
-                                Console.WriteLine("\tNo driver nodes found for this device.");
+                                Output("\tNo driver nodes found for this device.");
                             }
                         }
                     }
@@ -391,7 +391,7 @@ namespace DeviceInfo
                             endAddress = (ulong)Marshal.ReadInt64(resDesData, 16);
                             startAddress = (ulong)Marshal.ReadInt64(resDesData, 8);
                             if (0 < (endAddress - startAddress)) {
-                                Console.WriteLine("\t\tMEM : 0x{0:X8}-0x{1:X8}", startAddress, endAddress);
+                                Output("\t\tMEM : 0x{0:X8}-0x{1:X8}", startAddress, endAddress);
                                 retval = true;
                             }
                             break;
@@ -399,16 +399,16 @@ namespace DeviceInfo
                             endAddress = (ulong)Marshal.ReadInt64(resDesData, 16);
                             startAddress = (ulong)Marshal.ReadInt64(resDesData, 8);
                             if (0 < (endAddress - startAddress)) {
-                                Console.WriteLine("\t\tIO  : 0x{0:X8}-0x{1:X8}", startAddress, endAddress);
+                                Output("\t\tIO  : 0x{0:X8}-0x{1:X8}", startAddress, endAddress);
                                 retval = true;
                             }
                             break;
                         case ResourceType.DMAChannel:
-                            Console.WriteLine("\t\tDMA : {0}", Marshal.ReadInt32(resDesData, 12));
+                            Output("\t\tDMA : {0}", Marshal.ReadInt32(resDesData, 12));
                             retval = true;
                             break;
                         case ResourceType.IRQ:
-                            Console.WriteLine("\t\tIRQ : 0x{0:X8}", (uint)Marshal.ReadInt32(resDesData, 12));
+                            Output("\t\tIRQ : 0x{0:X8}", (uint)Marshal.ReadInt32(resDesData, 12));
                             retval = true;
                             break;
                     }
@@ -437,8 +437,8 @@ namespace DeviceInfo
             //    result = false;
             //}
             //if (!result) { StringCchCopy(devID, ARRAYSIZE(devID), "?"); }
-            //if (null != Info) { Console.WriteLine("\t{0}s: {1}\n", devID, Info); }
-            //else { Console.WriteLine("\t{0}\n", devID); }
+            //if (null != Info) { Output("\t{0}s: {1}\n", devID, Info); }
+            //else { Output("\t{0}\n", devID); }
             return result;
         }
 
@@ -573,7 +573,7 @@ namespace DeviceInfo
                 return 0;
             }
             catch (Exception e) {
-                Console.WriteLine("Error : {0}.\r\n{1}", e.Message, e.StackTrace);
+                Output("Error : {0}.\r\n{1}", e.Message, e.StackTrace);
                 return 99;
             }
             finally {
@@ -581,6 +581,11 @@ namespace DeviceInfo
                     SetupDiDestroyDeviceInfoList(devs);
                 }
             }
+        }
+
+        private static void Output(string format, params object [] args)
+        {
+            Console.WriteLine(format, args);
         }
 
         private static readonly IntPtr InvalidHandleValue = new IntPtr((long)-1);
